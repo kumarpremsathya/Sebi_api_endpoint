@@ -29,7 +29,7 @@ from django.http import HttpResponse
 import zipfile
 from io import BytesIO
 from django.views import View
-from .models import sebi_orders, mca_orders
+from .models import sebi_orders
 from django.core.serializers.json import DjangoJSONEncoder
 
 
@@ -190,6 +190,10 @@ class DownloadPDFsView(APIView):
 
         date = request.GET.get('date')
         type_of_order = kwargs.get('type_of_order')  # Extract 'type_of_order ' parameter from URL
+        
+        
+        BASE_DIR = Path(__file__).resolve().parent.parent
+        print("BASE_DIR: ", BASE_DIR)
         
         BASE_DIR2 = 'C:\\Users\\Premkumar.8265\\Desktop\\'  # Update with your base directory
         print("BASE_DIR2: ", BASE_DIR2)
@@ -366,6 +370,163 @@ class DownloadPDFsView(APIView):
 
 
 
+
+
+# class DownloadPDFsView(APIView):
+#    def get(self, request, *args, **kwargs):
+#         try:
+#             limit = int(request.GET.get('limit', 50))
+#             offset = int(request.GET.get('offset', 0))
+           
+#             # Check if the limit is above 500 and raise an exception if so
+#             if limit > 500:
+#                 return Response({"result":"Limit should not exceed 500"},  status=status.HTTP_400_BAD_REQUEST)
+#         except ValueError:
+#             return Response({"result": "Invalid limit or offset value, must be an integer"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+#         date = str(request.GET.get('date', None))
+#         type_of_order = kwargs.get('type_of_order')  # Extract 'type_of_order ' parameter from URL
+        
+        
+      
+#         try:
+#             if date:
+#                 try:
+#                     validate_date(date)
+#                 except ValidationError:
+#                     return Response({"result": "Incorrect date format, should be YYYY-MM-DD"},status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+#                 valid_parameters = {'limit', 'offset', 'date'}
+#                 provided_parameters = set(request.GET.keys())
+
+#                 if not valid_parameters.issuperset(provided_parameters):
+#                     return Response({"result": "Invalid query parameters, check spelling for given parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+#                 # Filter queryset based on 'type_of_order' parameter
+#                 if type_of_order in ['ed_cgm', 'settlementorder']:
+#                     # Query the necessary number of PDFs based on both limit and offset parameters
+#                     order_details = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order=type_of_order).values('pdf_file_name')[offset:limit]
+                   
+#                     print("order_details :", order_details)
+   
+#                     # Filter the PDFs based on sr_no values
+#                     pdf_paths = [os.path.join(settings.MEDIA_ROOT, entry['pdf_file_name']) for entry in order_details if entry['pdf_file_name']]
+                   
+#                     print("pdf_paths :", pdf_paths)
+                    
+#                     BASE_DIR = Path(__file__).resolve().parent.parent
+#                     print("BASE_DIR :" , BASE_DIR)
+       
+                    
+#                     if pdf_paths:
+#                         # Create an HttpResponse object with content type as zip
+#                         response = HttpResponse(content_type='application/zip')
+
+#                         # Set the zip file name
+#                         response['Content-Disposition'] = 'attachment; filename="Sebi_pdf_files.zip"'
+
+#                         # Create a zip file
+#                         with zipfile.ZipFile(response, 'w') as zip_file:
+#                            for pdf_path in pdf_paths[offset:offset+limit]:
+#                                 pdf_file = os.path.join(settings.MEDIA_ROOT, pdf_path)
+#                                 if os.path.exists(pdf_file):
+#                                     zip_file.write(pdf_file, arcname=os.path.basename(pdf_file))
+#                                     print("zip_file:", zip_file)
+#                                 else:
+#                                     # If the PDF file is missing, log an error or return a message
+#                                     print(f"PDF file {pdf_file} is missing from the media folder")
+#                                     # You can log this error or return a response indicating the missing file # For example, you can
+#                                     return Response({"result": f"PDF file {pdf_file} is missing"}, status=status.HTTP_404_NOT_FOUND)
+
+#                         return response
+#                     else:
+#                         # If no PDF files were found, return an empty response
+#                         return Response({"result" :"No PDF files found."}, status=404)
+#                 else:
+#                     return Response({"result" :"Invalid 'type_of_order ' parameter."}, status=400)
+#         except ValueError:
+#             return Response({"result":"Invalid limit or offset value, must be an integer"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+#         except ValidationError:
+#             return Response({"result":"Incorrect date format, should be YYYY-MM-DD"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+#         except Exception as e:
+#             print("Error:", e)  # Debugging statement
+#             return Response({"result":"An error occurred."}, status=500)
+           
+
+
+
+        
+# class DownloadPDFsView(APIView):
+#    def get(self, request, *args, **kwargs):
+#         try:
+#             limit = int(request.GET.get('limit', 50))
+#             offset = int(request.GET.get('offset', 0))
+            
+#             # Check if the limit is above 500 and raise an exception if so
+#             if limit > 500:
+#                 return Response({"result":"Limit should not exceed 500"},  status = status.HTTP_400_BAD_REQUEST)
+#         except ValueError:
+#             return Response({"result": "Invalid limit or offset value, must be an integer"}, status =  status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+#         date = str(request.GET.get('date', None))
+#         type_of_order = kwargs.get('type_of_order')  # Extract 'type_of_order ' parameter from URL
+        
+#         try:
+#             if date:
+#                 try:
+#                     validate_date(date)
+#                 except ValidationError:
+#                     return Response({"result": "Incorrect date format, should be YYYY-MM-DD"},status = status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+#                 valid_parameters = {'limit', 'offset', 'date'}
+#                 provided_parameters = set(request.GET.keys())
+
+#                 if not valid_parameters.issuperset(provided_parameters):
+#                     return Response({"result": "Invalid query parameters, check spelling for given parameters"}, status = status.HTTP_400_BAD_REQUEST)
+
+
+#                 # Filter queryset based on 'type_of_order' parameter
+#                 if type_of_order in ['ed_cgm', 'settlementorder']:
+#                     # Query the necessary number of PDFs based on both limit and offset parameters
+#                     order_details = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order=type_of_order).values('pdf_file_name')[offset:limit]
+                    
+#                     print("order_details :", order_details)
+
+#                     # Filter the PDFs based on sr_no values
+#                     pdf_paths = [os.path.join(settings.MEDIA_ROOT, entry['pdf_file_name']) for entry in order_details if entry['pdf_file_name']]
+                    
+#                     print("pdf_paths :", pdf_paths)
+
+#                     if pdf_paths:
+#                         # Create an HttpResponse object with content type as zip
+#                         response = HttpResponse(content_type='application/zip')
+
+#                         # Set the zip file name
+#                         response['Content-Disposition'] = 'attachment; filename="Sebi_pdf_files.zip"'
+
+#                         # Create a zip file
+#                         with zipfile.ZipFile(response, 'w') as zip_file:
+#                             # Add each PDF file to the zip
+#                             for pdf_path in pdf_paths:
+#                                 zip_file.write(pdf_path, arcname=os.path.basename(pdf_path))
+
+#                         return response
+#                     else:
+#                         # If no PDF files were found, return an empty response
+#                         return Response({"result" :"No PDF files found."}, status=404)
+#                 else:
+#                     return Response({"result" :"Invalid 'type_of_order ' parameter."}, status=400)
+#         except ValueError:
+#             return Response({"result":"Invalid limit or offset value, must be an integer"}, status = status.HTTP_422_UNPROCESSABLE_ENTITY)
+#         except ValidationError:
+#             return Response({"result":"Incorrect date format, should be YYYY-MM-DD"}, status =status.HTTP_422_UNPROCESSABLE_ENTITY)
+#         except Exception as e:
+#             print("Error:", e)  # Debugging statement
+#             return Response({"result":"An error occurred."}, status=500)
+        
+            
+  
 
   
 
