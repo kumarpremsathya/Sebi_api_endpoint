@@ -55,33 +55,8 @@ from django.views import View
 from rest_framework import status
 from .models import sebi_orders        
 from datetime import datetime
-
-
-# Define the custom HTML renderer
-class HTMLRenderer(renderers.BaseRenderer):
-    media_type = 'text/html'
-    format = 'html'
-    charset = 'utf-8'
-
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        html_content = '<html><body>'
-        for entry in data['result']:
-            html_content += f'<p>Date: {entry["date_of_order"]}</p>'
-            html_content += f'<p>Title: {entry["title_of_order"]}</p>'
-            html_content += f'<p>Type Of Order: {entry["type_of_order"]}</p>'
-            html_content += f'<p>Link to Order: {entry["link_to_order"]}</p>'
-            html_content += f'<p>PDF File Path: {entry["pdf_file_path"]}</p>'
-            html_content += f'<p>PDF File Name: {entry["pdf_file_name"]}</p>'
-            html_content += f'<p>Date Scraped: {entry["date_scraped"]}</p>'
-            html_content += '<hr />'
-            
-         # Add the total PDF download link to the HTML content
-        html_content += f'<p>Total Count: {data["total_count"]}</p>' 
-        html_content += f'<p>{data["total_pdf_download_link"]}</p>'    
-        html_content += '</body></html>'
-        return html_content.encode(self.charset)
-
-
+from django.core.serializers import serialize
+import pandas as pd
 
 
 
@@ -131,12 +106,15 @@ class GetOrderDateView(APIView):
                 if type_of_order == 'ed_cgm':
                     order_details = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='ed_cgm').values('date_of_order',  'title_of_order', 'type_of_order', 'link_to_order',  'pdf_file_path', 'pdf_file_name', 'updated_date',  'date_scraped')[offset:limit]
                     total_count = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='ed_cgm').count()
-                elif type_of_order == 'ao_cgm':
-                    order_details = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='ao_cgm').values('date_of_order',  'title_of_order', 'type_of_order', 'link_to_order',  'pdf_file_path', 'pdf_file_name', 'updated_date',  'date_scraped')[offset:limit]
-                    total_count = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='ao_cgm').count()
+                elif type_of_order == 'chairperson_members':
+                    order_details = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='chairperson_members').values('date_of_order',  'title_of_order', 'type_of_order', 'link_to_order',  'pdf_file_path', 'pdf_file_name', 'updated_date',  'date_scraped')[offset:limit]
+                    total_count = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='chairperson_members').count()
                 elif type_of_order == 'settlementorder':
                     order_details = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='settlementorder').values('date_of_order',  'title_of_order', 'type_of_order', 'link_to_order',  'pdf_file_path', 'pdf_file_name', 'updated_date',  'date_scraped')[offset:limit]
                     total_count = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='settlementorder').count()
+                elif type_of_order == 'ao':
+                    order_details = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='ao').values('date_of_order',  'title_of_order', 'type_of_order', 'link_to_order',  'pdf_file_path', 'pdf_file_name', 'updated_date',  'date_scraped')[offset:limit]
+                    total_count = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order='ao').count()
                 else:
                     return Response({"result": "Invalid 'type_of_order' parameter"}, status = status.HTTP_400_BAD_REQUEST)
 
@@ -226,7 +204,14 @@ class DownloadPDFsView(APIView):
                 # Retrieve all orders for the specified date
                 order_details = sebi_orders.objects.filter(date_scraped__startswith=date, type_of_order=type_of_order)[offset:limit]
 
-                print("order_details:", order_details)  
+                print("order_details:", order_details.values())
+                
+                # Convert the queryset into a Pandas DataFrame for printing object values in table format in terminal. 
+                order_details_df = pd.DataFrame(list(order_details.values()))
+
+                # Print the DataFrame
+                print("Order Details DataFrame:")
+                print(order_details_df)
                 
                 pdf_paths = [os.path.join(BASE_DIR2, order.pdf_file_path.lstrip('/')) for order in order_details]
 
