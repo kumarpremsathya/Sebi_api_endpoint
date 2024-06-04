@@ -164,10 +164,8 @@ class GetOrderDateView(APIView):
                 return Response({"result": f"An internal server error occurred: {err}"}, status =  status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
            raise Http404("Page not found")
-
-
-
-
+       
+           
 
 class DownloadPDFsView(APIView):
     def get(self, request, *args, **kwargs):
@@ -175,9 +173,11 @@ class DownloadPDFsView(APIView):
             limit = int(request.GET.get('limit', 50))
             offset = int(request.GET.get('offset', 0))
             
-            # Check if the limit is above 500 and raise an exception if so
-            if limit > 500:
-                return Response({"result": "Limit should not exceed 500"}, status=status.HTTP_400_BAD_REQUEST)
+            # Ensure that the difference between limit and offset is within 500
+            if limit - offset > 500:
+                    return Response({"result": "Difference between limit and offset should not exceed 500"}, status=status.HTTP_400_BAD_REQUEST)
+     
+            
         except ValueError as ve:
             return Response({"result": str(ve)}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
